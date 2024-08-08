@@ -90,3 +90,14 @@ body {
   position: relative;
   top:-50px;
 }
+
+.login-container {
+  background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+}
+
+.login-form {
+  background: rgba(255, 255, 255, 0.1); /* Transparent form background */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Shadow for form */
+  max-width: 400px;
+  width: 100%;
+}

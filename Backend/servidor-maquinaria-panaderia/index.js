@@ -4,6 +4,10 @@ const cors = require('cors');
 const admin = require('firebase-admin');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid'); // Importar uuid
+require('dotenv').config();
 
 // Inicializa la app de Firebase Admin
 const serviceAccount = require('./ClavePrivada.json');
@@ -32,13 +36,9 @@ const transporter = nodemailer.createTransport({
 
 // Middleware para validar los datos de la solicitud
 function validateUploadRequest(req, res, next) {
-  const { fileName, fileData } = req.body;
-  if (!fileName || !fileData) {
-    return res.status(400).json({ error: 'fileName and fileData are required' });
-  }
-  // Validar que fileName no contenga caracteres peligrosos
-  if (path.basename(fileName) !== fileName) {
-    return res.status(400).json({ error: 'Invalid fileName' });
+  const { fileData, imageName, description } = req.body;
+  if (!fileData || !imageName || !description) {
+    return res.status(400).json({ error: 'fileData, imageName, and description are required' });
   }
   next();
 }
@@ -46,8 +46,9 @@ function validateUploadRequest(req, res, next) {
 // Rutas para manejar imágenes
 app.post('/upload', validateUploadRequest, async (req, res) => {
   try {
-    const { fileName, fileData } = req.body;
-    const file = bucket.file(`images/${fileName}`);
+    const { fileData, imageName, description } = req.body;
+    const uuid = uuidv4(); // Generar un UUID
+    const file = bucket.file(`images/${uuid}.png`); // Usar UUID como nombre de archivo
 
     // Guarda el archivo en Firebase Storage
     await file.save(Buffer.from(fileData, 'base64'), {
@@ -60,6 +61,15 @@ app.post('/upload', validateUploadRequest, async (req, res) => {
       expires: '01-01-2500',
     });
 
+    // Almacena la información en la Realtime Database de Firebase
+    const imageInfoRef = admin.database().ref('images').push();
+    await imageInfoRef.set({
+      uuid, // Usar UUID en lugar de fileName
+      imageName,
+      description,
+      url
+    });
+
     res.status(200).json({ url });
   } catch (error) {
     console.error('Error uploading file:', error);
@@ -69,71 +79,147 @@ app.post('/upload', validateUploadRequest, async (req, res) => {
 
 app.get('/images', async (req, res) => {
   try {
-    const [files] = await bucket.getFiles({ prefix: 'images/' });
-    const imageUrls = await Promise.all(
-      files.map(async (file) => {
-        const [url] = await file.getSignedUrl({
-          action: 'read',
-          expires: '01-01-2500',
-        });
-        return {
-          fileName: path.basename(file.name),
-          url
-        };
-      })
-    );
+    const snapshot = await admin.database().ref('images').once('value');
+    const images = snapshot.val();
 
-    res.status(200).json(imageUrls);
+    if (!images) {
+      return res.status(200).json([]);
+    }
+
+    const imageList = Object.keys(images).map(key => ({
+      uuid: images[key].uuid, // Agregar UUID a la lista de imágenes
+      imageName: images[key].imageName,
+      description: images[key].description,
+      url: images[key].url,
+    }));
+
+    res.status(200).json(imageList);
   } catch (error) {
     console.error('Error fetching images:', error);
     res.status(500).json({ error: 'Error fetching images' });
   }
 });
 
-app.put('/update', validateUploadRequest, async (req, res) => {
+app.put('/update', async (req, res) => {
   try {
-    const { fileName, fileData } = req.body;
-    const filePath = `images/${fileName}`;
+    const { uuid, fileData, imageName, description } = req.body;
+    if (!uuid) {
+      return res.status(400).json({ error: 'UUID is required' });
+    }
+
+    const filePath = `images/${uuid}.png`; // Usar UUID como nombre de archivo
     const file = bucket.file(filePath);
-  
-    // Verifica si el archivo existe antes de intentar eliminarlo
+
     const [exists] = await file.exists();
+
     if (!exists) {
       return res.status(404).json({ error: 'File does not exist' });
     }
-  
-    // Elimina el archivo antiguo
-    await file.delete();
-  
-    // Guarda el nuevo archivo
-    const newFile = bucket.file(filePath);
-    await newFile.save(Buffer.from(fileData, 'base64'), {
-      metadata: { contentType: 'image/png' },
-    });
-  
-    // Genera una URL firmada para el archivo actualizado
-    const [url] = await newFile.getSignedUrl({
-      action: 'read',
-      expires: '01-01-2500',
-    });
-  
-    res.status(200).json({ url });
+
+    if (fileData) {
+      // Si hay nueva imagen, elimina el archivo antiguo y guarda el nuevo
+      await file.delete();
+
+      const newFile = bucket.file(filePath);
+      await newFile.save(Buffer.from(fileData, 'base64'), {
+        metadata: { contentType: 'image/png' },
+      });
+
+      const [url] = await newFile.getSignedUrl({
+        action: 'read',
+        expires: '01-01-2500',
+      });
+
+      // Actualiza la información en la Realtime Database de Firebase
+      const imageInfoRef = admin.database().ref('images');
+      const snapshot = await imageInfoRef.orderByChild('uuid').equalTo(uuid).once('value');
+      const updates = {};
+      snapshot.forEach(childSnapshot => {
+        updates[childSnapshot.key] = {
+          uuid,
+          imageName: imageName || childSnapshot.val().imageName,
+          description: description || childSnapshot.val().description,
+          url
+        };
+      });
+      await imageInfoRef.update(updates);
+
+      res.status(200).json({ url });
+    } else {
+      const imageInfoRef = admin.database().ref('images');
+      const snapshot = await imageInfoRef.orderByChild('uuid').equalTo(uuid).once('value');
+      const updates = {};
+      snapshot.forEach(childSnapshot => {
+        updates[childSnapshot.key] = {
+          uuid,
+          imageName: imageName || childSnapshot.val().imageName,
+          description: description || childSnapshot.val().description,
+          url: childSnapshot.val().url
+        };
+      });
+      await imageInfoRef.update(updates);
+
+      res.status(200).json({ message: 'Image metadata updated successfully' });
+    }
   } catch (error) {
     console.error('Error updating file:', error);
     res.status(500).json({ error: 'Error updating file' });
   }
 });
 
+app.put('/update-metadata', async (req, res) => {
+  try {
+    const { uuid, imageName, description } = req.body;
+
+    if (!uuid) {
+      return res.status(400).json({ error: 'UUID is required' });
+    }
+
+    const imageInfoRef = admin.database().ref('images');
+    const snapshot = await imageInfoRef.orderByChild('uuid').equalTo(uuid).once('value');
+
+    if (!snapshot.exists()) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+
+    const updates = {};
+    snapshot.forEach(childSnapshot => {
+      updates[childSnapshot.key] = {
+        ...childSnapshot.val(),
+        imageName: imageName || childSnapshot.val().imageName,
+        description: description || childSnapshot.val().description,
+      };
+    });
+
+    await imageInfoRef.update(updates);
+
+    res.status(200).json({ message: 'Metadata updated successfully' });
+  } catch (error) {
+    console.error('Error updating metadata:', error);
+    res.status(500).json({ error: 'Error updating metadata' });
+  }
+});
+
 app.delete('/delete', async (req, res) => {
   try {
-    const { fileName } = req.body;
-    if (!fileName) {
-      return res.status(400).json({ error: 'fileName is required' });
+    const { uuid } = req.body;
+    if (!uuid) {
+      return res.status(400).json({ error: 'UUID is required' });
     }
-    const file = bucket.file(`images/${fileName}`);
+    const filePath = `images/${uuid}.png`; // Usar UUID como nombre de archivo
+    const file = bucket.file(filePath);
 
     // Elimina el archivo del bucket
     await file.delete();
+
+    // Elimina la información de la imagen en la Realtime Database
+    const imageInfoRef = admin.database().ref('images');
+    const snapshot = await imageInfoRef.orderByChild('uuid').equalTo(uuid).once('value');
+    const updates = {};
+    snapshot.forEach(childSnapshot => {
+      updates[childSnapshot.key] = null;
+    });
+    await imageInfoRef.update(updates);
 
     res.status(200).json({ message: 'File deleted successfully' });
   } catch (error) {
@@ -148,7 +234,7 @@ app.post('/submit-presupuesto', async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'destinatario@gmail.com',
+      to: 'Screanvir@gmail.com',
       subject: 'Solicitud de Presupuesto',
       text: `Detalles del presupuesto: ${presupuesto}`
     };
@@ -201,6 +287,38 @@ app.put('/contact-info', async (req, res) => {
   } catch (error) {
     console.error('Error updating contact info:', error);
     res.status(500).json({ error: 'Error updating contact info' });
+  }
+});
+
+// Manejar Login
+app.post('/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    // Credenciales del usuario
+    const storedUsername = 'Administrador';
+    const storedPasswordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+
+    if (username !== storedUsername) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, storedPasswordHash);
+    
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Generar token
+    const token = jwt.sign({ username }, process.env.SECRET_KEY, { expiresIn: '1h' });
+
+    res.status(200).json({ message: 'Login successful', token });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Error during login' });
   }
 });
 

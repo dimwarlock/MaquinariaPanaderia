@@ -8,6 +8,13 @@ function Admin() {
   const [data, setData] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imageToUpdate, setImageToUpdate] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+
+  const [imageInfo, setImageInfo] = useState({
+    imageName: '',
+    imageDescription: ''
+  });
 
   const [contactInfo, setContactInfo] = useState({
     phone: '',
@@ -26,7 +33,27 @@ function Admin() {
     }
   };
 
+  const resetImageInfo = () => {
+    setImageInfo({
+      imageName: '',
+      imageDescription: ''
+    });
+  };
+
   const handleUpload = async () => {
+    resetImageInfo();
+    setShowImageModal(true);
+  };
+
+  const handleImageModalClose = () => setShowImageModal(false);
+  const handleUpdateModalClose = () => setShowUpdateModal(false);
+
+  const handleImageInfoChange = (e) => {
+    setImageInfo({ ...imageInfo, [e.target.name]: e.target.value });
+  };
+
+  const handleImageInfoSubmit = async (e) => {
+    e.preventDefault();
     if (image) {
       const reader = new FileReader();
       reader.readAsDataURL(image);
@@ -39,8 +66,9 @@ function Admin() {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              fileName: image.name,
+              imageName: imageInfo.imageName,
               fileData: base64Image,
+              description: imageInfo.imageDescription
             }),
           });
 
@@ -48,9 +76,11 @@ function Admin() {
             throw new Error('Network response was not ok');
           }
 
-          await response.json(); // Opcional: manejar la respuesta si es necesario
-          setImage(null); // Limpiar el estado de la imagen
-          fetchData(); // Recargar las imágenes después de subir
+          await response.json();
+          setImage(null);
+          setImageInfo({ imageName: '', imageDescription: '' });
+          fetchData();
+          setShowImageModal(false);
         } catch (error) {
           console.error('Error uploading file:', error);
         }
@@ -58,33 +88,48 @@ function Admin() {
     }
   };
 
-  const handleDelete = async (fileName) => {
+  const handleDelete = async (uuid) => {
     try {
       const response = await fetch('http://localhost:5000/delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ fileName }),
+        body: JSON.stringify({ uuid }),
       });
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
 
-      fetchData(); // Recargar las imágenes después de eliminar
+      fetchData();
     } catch (error) {
       console.error('Error deleting file:', error);
     }
   };
 
   const handleUpdate = async () => {
-    if (selectedImage && imageToUpdate) {
+    if (imageToUpdate) {
+      const selectedData = data.find(item => item.uuid === imageToUpdate);
+      if (selectedData) {
+        setImageInfo({
+          imageName: selectedData.imageName,
+          imageDescription: selectedData.description,
+        });
+        setShowUpdateModal(true);
+      }
+    }
+  };
+
+  const handleUpdateImageSubmit = async (e) => {
+    e.preventDefault();
+    let base64SelectedImage = null;
+
+    if (selectedImage) {
       const readerSelectedImage = new FileReader();
       readerSelectedImage.readAsDataURL(selectedImage);
-
       readerSelectedImage.onloadend = async () => {
-        const base64SelectedImage = readerSelectedImage.result.split(',')[1];
+        base64SelectedImage = readerSelectedImage.result.split(',')[1];
 
         try {
           const response = await fetch('http://localhost:5000/update', {
@@ -93,8 +138,10 @@ function Admin() {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              fileName: imageToUpdate,
+              uuid: imageToUpdate,
               fileData: base64SelectedImage,
+              imageName: imageInfo.imageName,
+              description: imageInfo.imageDescription
             }),
           });
 
@@ -102,14 +149,42 @@ function Admin() {
             throw new Error('Network response was not ok');
           }
 
-          await response.json(); // Opcional: manejar la respuesta si es necesario
-          setSelectedImage(null); // Limpiar el estado de la imagen seleccionada
-          setImageToUpdate(null); // Limpiar el estado de la imagen a actualizar
-          fetchData(); // Recargar las imágenes después de actualizar
+          await response.json();
+          setSelectedImage(null);
+          setImageToUpdate(null);
+          setImageInfo({ imageName: '', imageDescription: '' });
+          fetchData();
+          setShowUpdateModal(false);
         } catch (error) {
           console.error('Error updating file:', error);
         }
       };
+    } else {
+      try {
+        const response = await fetch('http://localhost:5000/update-metadata', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            uuid: imageToUpdate,
+            imageName: imageInfo.imageName,
+            description: imageInfo.imageDescription
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        await response.json();
+        setImageToUpdate(null);
+        setImageInfo({ imageName: '', imageDescription: '' });
+        fetchData();
+        setShowUpdateModal(false);
+      } catch (error) {
+        console.error('Error updating image metadata:', error);
+      }
     }
   };
 
@@ -165,7 +240,7 @@ function Admin() {
         throw new Error('Network response was not ok');
       }
 
-      fetchContactInfo(); // Refresh contact info
+      fetchContactInfo();
       handleContactModalClose();
     } catch (error) {
       console.error('Error updating contact info:', error);
@@ -238,7 +313,7 @@ function Admin() {
           type="file"
           className="form-control-file"
           onChange={handleImageChange}
-          style={{ display: 'none' }} // Ocultar el input de archivo
+          style={{ display: 'none' }}
         />
         <label htmlFor="fileInput" className="btn btn-outline-light">
           Seleccionar Imagen
@@ -248,6 +323,40 @@ function Admin() {
         </span>
         <button className="btn btn-outline-light mt-2" onClick={handleUpload}>Confirmar Imágen</button>
       </div>
+
+      <Modal show={showImageModal} onHide={handleImageModalClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Agregar Información de Imagen</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleImageInfoSubmit}>
+            <Form.Group controlId="formImageName">
+              <Form.Label>Nombre imagen</Form.Label>
+              <Form.Control
+                type="text"
+                name="imageName"
+                value={imageInfo.imageName}
+                onChange={handleImageInfoChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="formImageDescription" className="mt-3">
+              <Form.Label>Descripción imagen</Form.Label>
+              <Form.Control
+                type="text"
+                name="imageDescription"
+                value={imageInfo.imageDescription}
+                onChange={handleImageInfoChange}
+                required
+              />
+            </Form.Group>
+            <div className="d-flex justify-content-between mt-4">
+              <Button variant="outline-dark" type="submit">Confirmar</Button>
+              <Button variant="outline-dark" onClick={handleImageModalClose}>Cerrar</Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
 
       <br />
       <br />
@@ -266,28 +375,62 @@ function Admin() {
           </label>
           <select className="form-select form-select-sm me-2" onChange={(e) => setImageToUpdate(e.target.value)} style={{ width: '280px' }}>
             <option value="">Seleccione una Imágen a modificar</option>
-            {data.map(({ fileName }) => (
-              <option key={fileName} value={fileName}>{fileName}</option>
+            {data.map(({ uuid, imageName }) => (
+              <option key={uuid} value={uuid}>{imageName}</option>
             ))}
           </select>
           <button className="btn btn-outline-light" onClick={handleUpdate}>Modificar Imágen</button>
         </div>
       </div>
 
-      <br></br>
+      <Modal show={showUpdateModal} onHide={handleUpdateModalClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Modificar Información de Imagen</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleUpdateImageSubmit}>
+            <Form.Group controlId="formUpdateImageName">
+              <Form.Label>Nombre imagen</Form.Label>
+              <Form.Control
+                type="text"
+                name="imageName"
+                value={imageInfo.imageName}
+                onChange={handleImageInfoChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="formUpdateImageDescription" className="mt-3">
+              <Form.Label>Descripción imagen</Form.Label>
+              <Form.Control
+                type="text"
+                name="imageDescription"
+                value={imageInfo.imageDescription}
+                onChange={handleImageInfoChange}
+                required
+              />
+            </Form.Group>
+            <div className="d-flex justify-content-between mt-4">
+              <Button variant="outline-dark" type="submit">Confirmar</Button>
+              <Button variant="outline-dark" onClick={handleUpdateModalClose}>Cerrar</Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      <br />
 
       <div className="images-grid mt-4">
         <h2>Imágenes</h2>
         <div className="row">
-          {data.map(({ fileName, url }, index) => (
-            <div key={index} className="col-md-4 mb-4">
+          {data.map(({ uuid, imageName, url }, index) => (
+            <div key={uuid} className="col-md-4 mb-4">
               <div className="card">
                 <div className="image-container">
-                  <img src={url} alt={fileName} className="card-img-top" />
+                  <img src={url} alt={imageName} className="card-img-top" />
                 </div>
               </div>
               <div className="card-body text-center">
-                <button className="btn btn-outline-light" onClick={() => handleDelete(fileName)}>Eliminar Imagen</button>
+                <button className="btn btn-outline-light" onClick={() => handleDelete(uuid)}>Eliminar Imagen</button>
               </div>
             </div>
           ))}

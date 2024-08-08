@@ -3,6 +3,7 @@
 # dependencies
 /Backend/servidor-maquinaria-panaderia/node_modules
 /Backend/servidor-maquinaria-panaderia/ClavePrivada.json
+/Backend/servidor-maquinaria-panaderia/.ENV
 
 /Frontend/maquinaria-panaderia/node_modules
 /Frontend/maquinaria-panaderia/src/Login.js

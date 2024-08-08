@@ -27,12 +27,18 @@ function Productos() {
       <div className="d-flex flex-column align-items-center">
         {images.length > 0 ? (
           images.map((image) => (
-            <div key={image.fileName} className="mb-4">
-              <img 
-                src={image.url} 
-                alt={image.fileName} 
-                style={{ width: '100%', maxWidth: '600px', height: 'auto', objectFit: 'cover' }} 
-              />
+            <div key={image.fileName} className="row mb-4">
+              <div className="col-md-4">
+                <img 
+                  src={image.url} 
+                  alt={image.fileName} 
+                  style={{ width: '100%', height: 'auto', objectFit: 'cover' }} 
+                />
+              </div>
+              <div className="col-md-8">
+                <h2>{image.imageName}</h2>
+                <p>{image.description}</p>
+              </div>
             </div>
           ))
         ) : (

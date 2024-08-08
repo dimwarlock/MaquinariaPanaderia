@@ -8,6 +8,7 @@ import Login from './Login';
 import Contacto from './Contacto';
 import Productos from './Productos';
 import { Carousel, Modal, Button, Form, Dropdown } from 'react-bootstrap';
+import PrivateRoute from './PrivateRoute';
 
 function App() {
   const [images, setImages] = useState([]);
@@ -35,9 +36,14 @@ function App() {
     fetchImages();
   }, []);
 
-  const handleShow = () => setShow(true);
+  const resetForm = () => {
+    setFormData({});
+  };
+
+  const handleShow = () => {resetForm(); setShow(true);}
   const handleClose = () => setShow(false);
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,7 +82,7 @@ function App() {
         <nav className="navbar navbar-expand-lg navbar-dark fixed-top">
           <div className="container">
             <img src='images/Logo.jpg' style={{ height: '60px', width: '60px', marginRight: '20px' }} alt="Logo" />
-            <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
               <span className="navbar-toggler-icon"></span>
             </button>
             <div className="collapse navbar-collapse row justify-content-between" id="navbarNav">
@@ -126,21 +132,21 @@ function App() {
                     </Carousel>
                   </div>
                   <div className="col-md-4">
-                    <br></br>
+                    <br />
                     <p className="text-right">Técnico en máquinas de la marca Rapallo con más de 40 años de experiencia en el rubro.</p>
-                    <br></br><br></br><br></br><br></br><br></br><br></br>
+                    <br /><br /><br /><br /><br /><br />
                     <img src='images/LogoTransparencia.png' style={{ height: '200px', width: '200px', marginRight: '20px' }} alt="Logo" />
                   </div>
                 </div>
                 <div ref={calidadRef}></div>
-                <br></br>
-                <br></br>
+                <br />
+                <br />
                 <div>
                   <h2 className="text-center" style={{ marginTop: '0px' }}>Servicios de calidad para panaderías</h2>
                   <p className="text-center mt-4">Nuestros servicios ofrecen cuchillas y rebanadoras duraderas y precisas 
                   para la industria de la panadería, trabajamos con metal de alta calidad para garantizar excelencia de nuestros productos.</p>
 
-                  <br></br>
+                  <br />
 
                   <div className="row justify-content-center mt-4">
                     <div className="col-4">
@@ -171,55 +177,59 @@ function App() {
 
                 <div className="row justify-content-between mt-5" ref={presupuestoRef}>
                   <div className="col-md-6">
-                    <h1 style={{ fontSize: '50px'}}>Solicita tu presupuesto</h1>
-                    <p style={{ fontSize: '25px'}}>Contáctanos para obtener tu presupuesto detallado y personalizado según tus necesidades 
+                    <h1 style={{ fontSize: '50px' }}>Solicita tu presupuesto</h1>
+                    <p style={{ fontSize: '25px' }}>Contáctanos para obtener tu presupuesto detallado y personalizado según tus necesidades 
                       específicas.</p>
 
-                    <br></br>
+                    <br />
                     <Button variant="outline-light btn-lg" onClick={handleShow}>Solicitar</Button>
                   </div>
                   <div className="col-md-6 text-right">
-                    <img src="/images/Presupuesto.jpeg" alt="Presupuesto" style={{ width: '90%', maxWidth: '500px', height: '300px', objectFit: 'cover' }} />
+                  <img src="/images/Presupuesto.jpeg" alt="Presupuesto" style={{ width: '90%', maxWidth: '500px', height: '300px', objectFit: 'cover' }} />
                   </div>
                 </div>
 
                 <br></br>
 
-              </div>
+                <Modal show={show} onHide={handleClose} centered>
+                  <Modal.Header closeButton>
+                    <Modal.Title>Solicita tu presupuesto</Modal.Title>
+                  </Modal.Header>
+                  <Modal.Body>
+                    <Form onSubmit={handleSubmit}>
+                      <Form.Group controlId="formPresupuesto">
+                        <Form.Label>Detalles del presupuesto</Form.Label>
+                        <Form.Control 
+                          as="textarea"
+                          rows={4}
+                          placeholder="Escriba los detalles de su presupuesto" 
+                          name="presupuesto"
+                          value={formData.presupuesto || ''}
+                          onChange={handleChange} 
+                          required 
+                        />
+                      </Form.Group>
+                      <div className="d-flex justify-content-between mt-3">
+                        <Button variant="dark" onClick={handleClose}>Cerrar</Button>
+                        <Button variant="dark" type="submit">Enviar</Button>
+                      </div>
+                    </Form>
+                  </Modal.Body>
+                </Modal>
+            </div>
             } />
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/Contacto" element={<Contacto />} />
+
             <Route path="/Productos" element={<Productos />} />
+            <Route path="/Contacto" element={<Contacto />} />
+            <Route path="/Login" element={<Login />} />
+            <Route path="/Admin" element={
+              <PrivateRoute>
+                <Admin />
+              </PrivateRoute>
+            } />
           </Routes>
         </div>
       </header>
-
-      <Modal show={show} onHide={handleClose} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Solicita tu presupuesto</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formPresupuesto">
-              <Form.Label>Detalles del presupuesto</Form.Label>
-              <Form.Control 
-                as="textarea"
-                rows={4}
-                placeholder="Escriba los detalles de su presupuesto" 
-                name="presupuesto"
-                value={formData.presupuesto || ''}
-                onChange={handleChange} 
-                required 
-              />
-            </Form.Group>
-            <div className="d-flex justify-content-between mt-3">
-              <Button variant="dark" onClick={handleClose}>Cerrar</Button>
-              <Button variant="dark" type="submit">Enviar</Button>
-            </div>
-          </Form>
-        </Modal.Body>
-      </Modal>
     </div>
   );
 }
