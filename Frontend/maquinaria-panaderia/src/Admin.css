@@ -1,0 +1,32 @@
+/* Admin.css */
+
+/* General Button Styles */
+.btn-outline-dark {
+    border: 1px solid #000; /* Bordes negros */
+    color: #fff; /* Letras blancas */
+    background-color: #000; /* Fondo negro */
+  }
+  
+  .btn-outline-dark:hover {
+    background-color: #333; /* Fondo negro más claro al pasar el ratón */
+    border-color: #000; /* Mantiene el borde negro */
+  }
+  
+  /* File Input Styles */
+  .form-control-file {
+    border: 1px solid #000; /* Bordes negros */
+    color: #fff; /* Letras blancas */
+    background-color: #000; /* Fondo negro */
+    padding: 0.375rem 0.75rem; /* Ajusta el padding para mantener un buen diseño */
+  }
+  
+  .form-control-file::-webkit-file-upload-button {
+    background-color: #000; /* Fondo negro del botón de selección de archivo */
+    color: #fff; /* Letras blancas del botón de selección de archivo */
+    border: 1px solid #000; /* Bordes negros del botón de selección de archivo */
+  }
+  
+  .form-control-file::-webkit-file-upload-button:hover {
+    background-color: #333; /* Fondo negro más claro al pasar el ratón */
+  }
+  
