@@ -60,7 +60,7 @@ function Admin() {
       reader.onloadend = async () => {
         const base64Image = reader.result.split(',')[1];
         try {
-          const response = await fetch('http://localhost:5000/upload', {
+          const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/upload', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ function Admin() {
 
   const handleDelete = async (uuid) => {
     try {
-      const response = await fetch('http://localhost:5000/delete', {
+      const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -132,7 +132,7 @@ function Admin() {
         base64SelectedImage = readerSelectedImage.result.split(',')[1];
 
         try {
-          const response = await fetch('http://localhost:5000/update', {
+          const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/update', {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ function Admin() {
       };
     } else {
       try {
-        const response = await fetch('http://localhost:5000/update-metadata', {
+        const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/update-metadata', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -190,7 +190,7 @@ function Admin() {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://localhost:5000/images');
+      const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/images');
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -203,7 +203,7 @@ function Admin() {
 
   const fetchContactInfo = async () => {
     try {
-      const response = await fetch('http://localhost:5000/contact-info');
+      const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/contact-info');
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -228,7 +228,7 @@ function Admin() {
   const handleContactSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/contact-info', {
+      const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/contact-info', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

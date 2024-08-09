@@ -2,4 +2,4 @@
 /Backend/servidor-maquinaria-panaderia/.ENV
 
 /Frontend/maquinaria-panaderia/node_modules
-/Frontend/maquinaria-panaderia/src/Login.js
+/Frontend/maquinaria-panaderia/build

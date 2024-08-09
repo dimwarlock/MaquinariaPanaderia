@@ -10,7 +10,7 @@ function Contacto() {
 
   const fetchContactInfo = async () => {
     try {
-      const response = await fetch('http://localhost:5000/contact-info');
+      const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/contact-info');
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
