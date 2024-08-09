@@ -8,9 +8,28 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid'); // Importar uuid
 require('dotenv').config();
+const fs = require('fs');
 
 // Inicializa la app de Firebase Admin
-const serviceAccount = require('./ClavePrivada.json');
+//const serviceAccount = require('./ClavePrivada.json');
+function loadFirebaseConfig() {
+  const templatePath = path.join(__dirname, 'ClavePrivada.json');
+  let configContent = fs.readFileSync(templatePath, 'utf-8');
+
+  // Reemplazar las variables del template por los valores de entorno
+  configContent = configContent.replace(/\$\{(\w+)\}/g, (match, variable) => {
+    return process.env[variable] || match;
+  });
+
+  return JSON.parse(configContent);
+}
+
+const serviceAccount = loadFirebaseConfig();
+
+
+
+
+
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
