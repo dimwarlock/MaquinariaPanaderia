@@ -208,6 +208,33 @@ function App() {
                           onChange={handleChange} 
                           required 
                         />
+                        <Form.Label>Correo Electrónico</Form.Label>
+                        <Form.Control 
+                          type="email"
+                          placeholder="Correo@Correo.com" 
+                          name="presupuesto_email"
+                          value={formData.presupuesto_email || ''}
+                          onChange={handleChange} 
+                          required 
+                        />
+                        <Form.Label>Número Telefonico</Form.Label>
+                        <Form.Control 
+                          type="tel"
+                          placeholder="+56900000000" 
+                          name="presupuesto_numero"
+                          value={formData.presupuesto_numero || ''}
+                          onChange={handleChange}
+                          required
+                        />
+                        <Form.Label>Nombre y Apellido</Form.Label>
+                        <Form.Control 
+                          type="text"
+                          placeholder="Nombre y Apellido" 
+                          name="presupuesto_nombre"
+                          value={formData.presupuesto_nombre || ''}
+                          onChange={handleChange} 
+                          required 
+                        />
                       </Form.Group>
                       <div className="d-flex justify-content-between mt-3">
                         <Button variant="dark" onClick={handleClose}>Cerrar</Button>

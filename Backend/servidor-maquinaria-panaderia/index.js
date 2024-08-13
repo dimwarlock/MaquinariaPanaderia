@@ -250,12 +250,18 @@ app.delete('/delete', async (req, res) => {
 app.post('/submit-presupuesto', async (req, res) => {
   try {
     const { presupuesto } = req.body;
+    const { presupuesto_email } = req.body;
+    const { presupuesto_numero } = req.body;
+    const { presupuesto_nombre } = req.body;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'Screanvir@gmail.com',
+      to: 'contacto.mariogaete@gmail.com',
       subject: 'Solicitud de Presupuesto',
-      text: `Detalles del presupuesto: ${presupuesto}`
+      text: `Detalles del presupuesto: ${presupuesto}`,
+      text: `Email: ${presupuesto_email}`,
+      text: `Número: ${presupuesto_numero}`,
+      text: `Nombre: ${presupuesto_nombre}`
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
