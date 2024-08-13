@@ -1,4 +1,3 @@
-// Login.js
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -6,7 +5,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
 import { AuthContext } from './AuthContext';
 
-function Login() {
+function Login() 
+{
   const [formData, setFormData] = useState({});
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
@@ -17,7 +17,8 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
+    try 
+    {
       const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/login', {
         method: 'POST',
         headers: {
@@ -26,7 +27,8 @@ function Login() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
+      if (!response.ok) 
+      {
         throw new Error('Network response was not ok');
       }
 
@@ -36,19 +38,21 @@ function Login() {
       // Iniciar sesión y redirigir a Admin
       login();
       navigate('/admin');
-    } catch (error) {
+    } 
+    catch (error) 
+    {
       console.error('Error logging in:', error);
       alert('Error logging in: ' + error.message);
     }
   };
 
   return (
-    <div className="login-container d-flex justify-content-center align-items-center vh-100">
+    <center>
       <div className="login-form p-4 rounded bg-transparent text-white">
         <h2 className="text-center mb-4">Iniciar Sesión</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group mb-3">
-            <label htmlFor="username">Usuario</label>
+            <label htmlFor="username">Nombre Administrador</label>
             <input
               type="text"
               className="form-control"
@@ -71,14 +75,14 @@ function Login() {
               required
             />
           </div>
-          <div className="d-flex justify-content-between mt-3">
+          <div className="d-flex justify-content-center mt-3">
             <button type="submit" className="btn btn-outline-light">
               Iniciar Sesión
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </center>
   );
 }
 

@@ -25,10 +25,13 @@ function Admin() {
   const [showContactModal, setShowContactModal] = useState(false);
 
   const handleImageChange = (e) => {
-    if (e.target.files[0]) {
+    if (e.target.files[0]) 
+    {
       setImage(e.target.files[0]);
       document.getElementById('fileName').textContent = e.target.files[0].name;
-    } else {
+    }
+    else
+    {
       document.getElementById('fileName').textContent = 'Sin archivo seleccionado';
     }
   };
@@ -54,12 +57,14 @@ function Admin() {
 
   const handleImageInfoSubmit = async (e) => {
     e.preventDefault();
-    if (image) {
+    if (image) 
+    {
       const reader = new FileReader();
       reader.readAsDataURL(image);
       reader.onloadend = async () => {
         const base64Image = reader.result.split(',')[1];
-        try {
+        try 
+        {
           const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/upload', {
             method: 'POST',
             headers: {
@@ -72,7 +77,8 @@ function Admin() {
             }),
           });
 
-          if (!response.ok) {
+          if (!response.ok) 
+          {
             throw new Error('Network response was not ok');
           }
 
@@ -81,7 +87,9 @@ function Admin() {
           setImageInfo({ imageName: '', imageDescription: '' });
           fetchData();
           setShowImageModal(false);
-        } catch (error) {
+        }
+        catch (error) 
+        {
           console.error('Error uploading file:', error);
         }
       };
@@ -89,7 +97,8 @@ function Admin() {
   };
 
   const handleDelete = async (uuid) => {
-    try {
+    try 
+    {
       const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/delete', {
         method: 'DELETE',
         headers: {
@@ -98,20 +107,25 @@ function Admin() {
         body: JSON.stringify({ uuid }),
       });
 
-      if (!response.ok) {
+      if (!response.ok) 
+      {
         throw new Error('Network response was not ok');
       }
 
       fetchData();
-    } catch (error) {
+    }
+    catch (error) 
+    {
       console.error('Error deleting file:', error);
     }
   };
 
   const handleUpdate = async () => {
-    if (imageToUpdate) {
+    if (imageToUpdate) 
+    {
       const selectedData = data.find(item => item.uuid === imageToUpdate);
-      if (selectedData) {
+      if (selectedData) 
+      {
         setImageInfo({
           imageName: selectedData.imageName,
           imageDescription: selectedData.description,
@@ -125,13 +139,15 @@ function Admin() {
     e.preventDefault();
     let base64SelectedImage = null;
 
-    if (selectedImage) {
+    if (selectedImage)
+    {
       const readerSelectedImage = new FileReader();
       readerSelectedImage.readAsDataURL(selectedImage);
       readerSelectedImage.onloadend = async () => {
         base64SelectedImage = readerSelectedImage.result.split(',')[1];
 
-        try {
+        try
+        {
           const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/update', {
             method: 'PUT',
             headers: {
@@ -145,7 +161,8 @@ function Admin() {
             }),
           });
 
-          if (!response.ok) {
+          if (!response.ok)
+          {
             throw new Error('Network response was not ok');
           }
 
@@ -155,12 +172,17 @@ function Admin() {
           setImageInfo({ imageName: '', imageDescription: '' });
           fetchData();
           setShowUpdateModal(false);
-        } catch (error) {
+        }
+        catch (error)
+        {
           console.error('Error updating file:', error);
         }
       };
-    } else {
-      try {
+    }
+    else
+    {
+      try
+      {
         const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/update-metadata', {
           method: 'PUT',
           headers: {
@@ -173,7 +195,8 @@ function Admin() {
           }),
         });
 
-        if (!response.ok) {
+        if (!response.ok)
+        {
           throw new Error('Network response was not ok');
         }
 
@@ -182,34 +205,44 @@ function Admin() {
         setImageInfo({ imageName: '', imageDescription: '' });
         fetchData();
         setShowUpdateModal(false);
-      } catch (error) {
+      }
+      catch (error)
+      {
         console.error('Error updating image metadata:', error);
       }
     }
   };
 
   const fetchData = async () => {
-    try {
+    try
+    {
       const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/images');
-      if (!response.ok) {
+      if (!response.ok)
+      {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
       setData(data);
-    } catch (error) {
+    }
+    catch (error)
+    {
       console.error('Error fetching images:', error);
     }
   };
 
   const fetchContactInfo = async () => {
-    try {
+    try
+    {
       const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/contact-info');
-      if (!response.ok) {
+      if (!response.ok)
+      {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
       setContactInfo(data);
-    } catch (error) {
+    }
+    catch (error)
+    {
       console.error('Error fetching contact info:', error);
     }
   };
@@ -227,7 +260,8 @@ function Admin() {
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
-    try {
+    try
+    {
       const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/contact-info', {
         method: 'PUT',
         headers: {
@@ -236,13 +270,16 @@ function Admin() {
         body: JSON.stringify(contactInfo),
       });
 
-      if (!response.ok) {
+      if (!response.ok)
+      {
         throw new Error('Network response was not ok');
       }
 
       fetchContactInfo();
       handleContactModalClose();
-    } catch (error) {
+    }
+    catch (error)
+    {
       console.error('Error updating contact info:', error);
     }
   };

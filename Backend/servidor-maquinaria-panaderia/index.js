@@ -6,12 +6,11 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid'); // Importar uuid
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 const fs = require('fs');
 
 // Inicializa la app de Firebase Admin
-//const serviceAccount = require('./ClavePrivada.json');
 function loadFirebaseConfig() {
   const templatePath = path.join(__dirname, 'ClavePrivada.json');
   let configContent = fs.readFileSync(templatePath, 'utf-8');
@@ -25,11 +24,6 @@ function loadFirebaseConfig() {
 }
 
 const serviceAccount = loadFirebaseConfig();
-
-
-
-
-
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -53,18 +47,22 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Middleware para validar los datos de la solicitud
+// Middleware para validar los datos de la solicitud, es decir, todos los campos tienen información
 function validateUploadRequest(req, res, next) {
   const { fileData, imageName, description } = req.body;
-  if (!fileData || !imageName || !description) {
-    return res.status(400).json({ error: 'fileData, imageName, and description are required' });
+  if (!fileData || !imageName || !description)
+  {
+    return res.status(400).json({ error: 'Se requiere imágen, nombre de imágen y descripción de imágen.' });
   }
   next();
 }
 
-// Rutas para manejar imágenes
+
+
+// Ruta para subir imágen
 app.post('/upload', validateUploadRequest, async (req, res) => {
-  try {
+  try
+  {
     const { fileData, imageName, description } = req.body;
     const uuid = uuidv4(); // Generar un UUID
     const file = bucket.file(`images/${uuid}.png`); // Usar UUID como nombre de archivo
@@ -90,18 +88,25 @@ app.post('/upload', validateUploadRequest, async (req, res) => {
     });
 
     res.status(200).json({ url });
-  } catch (error) {
+  }
+  catch (error)
+  {
     console.error('Error uploading file:', error);
-    res.status(500).json({ error: 'Error uploading file' });
+    res.status(500).json({ error: 'Error al subir imágen.' });
   }
 });
 
+
+
+// Ruta para obtener imágenes
 app.get('/images', async (req, res) => {
-  try {
+  try
+  {
     const snapshot = await admin.database().ref('images').once('value');
     const images = snapshot.val();
 
-    if (!images) {
+    if (!images)
+    {
       return res.status(200).json([]);
     }
 
@@ -113,16 +118,23 @@ app.get('/images', async (req, res) => {
     }));
 
     res.status(200).json(imageList);
-  } catch (error) {
+  }
+  catch (error)
+  {
     console.error('Error fetching images:', error);
-    res.status(500).json({ error: 'Error fetching images' });
+    res.status(500).json({ error: 'Error obteniendo imágenes.' });
   }
 });
 
+
+
+// Ruta para actualizar imágen
 app.put('/update', async (req, res) => {
-  try {
+  try
+  {
     const { uuid, fileData, imageName, description } = req.body;
-    if (!uuid) {
+    if (!uuid)
+    {
       return res.status(400).json({ error: 'UUID is required' });
     }
 
@@ -131,11 +143,13 @@ app.put('/update', async (req, res) => {
 
     const [exists] = await file.exists();
 
-    if (!exists) {
-      return res.status(404).json({ error: 'File does not exist' });
+    if (!exists)
+    {
+      return res.status(404).json({ error: 'La imágen no existe.' });
     }
 
-    if (fileData) {
+    if (fileData)
+    {
       // Si hay nueva imagen, elimina el archivo antiguo y guarda el nuevo
       await file.delete();
 
@@ -164,7 +178,9 @@ app.put('/update', async (req, res) => {
       await imageInfoRef.update(updates);
 
       res.status(200).json({ url });
-    } else {
+    }
+    else
+    {
       const imageInfoRef = admin.database().ref('images');
       const snapshot = await imageInfoRef.orderByChild('uuid').equalTo(uuid).once('value');
       const updates = {};
@@ -178,16 +194,22 @@ app.put('/update', async (req, res) => {
       });
       await imageInfoRef.update(updates);
 
-      res.status(200).json({ message: 'Image metadata updated successfully' });
+      res.status(200).json({ message: 'Información de imágen actualizada correctamente.' });
     }
-  } catch (error) {
+  }
+  catch (error)
+  {
     console.error('Error updating file:', error);
-    res.status(500).json({ error: 'Error updating file' });
+    res.status(500).json({ error: 'Error actualizando imágen.' });
   }
 });
 
+
+
+// Ruta para actualizar solo metadatos de una imágen
 app.put('/update-metadata', async (req, res) => {
-  try {
+  try
+  {
     const { uuid, imageName, description } = req.body;
 
     if (!uuid) {
@@ -197,7 +219,8 @@ app.put('/update-metadata', async (req, res) => {
     const imageInfoRef = admin.database().ref('images');
     const snapshot = await imageInfoRef.orderByChild('uuid').equalTo(uuid).once('value');
 
-    if (!snapshot.exists()) {
+    if (!snapshot.exists())
+    {
       return res.status(404).json({ error: 'Image not found' });
     }
 
@@ -212,17 +235,24 @@ app.put('/update-metadata', async (req, res) => {
 
     await imageInfoRef.update(updates);
 
-    res.status(200).json({ message: 'Metadata updated successfully' });
-  } catch (error) {
+    res.status(200).json({ message: 'Información de imágen actualizada correctamente.' });
+  }
+  catch (error)
+  {
     console.error('Error updating metadata:', error);
-    res.status(500).json({ error: 'Error updating metadata' });
+    res.status(500).json({ error: 'Error actualizando información de imágen.' });
   }
 });
 
+
+
+// Ruta para eliminar una imágen
 app.delete('/delete', async (req, res) => {
-  try {
+  try
+  {
     const { uuid } = req.body;
-    if (!uuid) {
+    if (!uuid)
+    {
       return res.status(400).json({ error: 'UUID is required' });
     }
     const filePath = `images/${uuid}.png`; // Usar UUID como nombre de archivo
@@ -240,15 +270,21 @@ app.delete('/delete', async (req, res) => {
     });
     await imageInfoRef.update(updates);
 
-    res.status(200).json({ message: 'File deleted successfully' });
-  } catch (error) {
+    res.status(200).json({ message: 'Imágen eliminada correctamente.' });
+  }
+  catch (error)
+  {
     console.error('Error deleting file:', error);
-    res.status(500).json({ error: 'Error deleting file' });
+    res.status(500).json({ error: 'Error eliminando imágen.' });
   }
 });
 
+
+
+// Ruta para enviar presupuesto
 app.post('/submit-presupuesto', async (req, res) => {
-  try {
+  try
+  {
     const { presupuesto } = req.body;
     const { presupuesto_email } = req.body;
     const { presupuesto_numero } = req.body;
@@ -256,7 +292,7 @@ app.post('/submit-presupuesto', async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'contacto.mariogaete@gmail.com',
+      to: 'screanvir@gmail.com',
       subject: 'Solicitud de Presupuesto',
       text: `Detalles del presupuesto: ${presupuesto}`,
       text: `Email: ${presupuesto_email}`,
@@ -265,85 +301,108 @@ app.post('/submit-presupuesto', async (req, res) => {
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
+      if (error)
+      {
         console.error('Error sending email:', error);
-        return res.status(500).json({ error: 'Error sending email' });
+        return res.status(500).json({ error: 'Error al enviar correo.' });
       }
       console.log('Email sent:', info.response);
-      res.status(200).json({ message: 'Email sent' });
+      res.status(200).json({ message: 'Email enviado correctamente.' });
     });
-  } catch (error) {
+  }
+  catch (error)
+  {
     console.error('Error submitting form:', error);
-    res.status(500).json({ error: 'Error submitting form' });
+    res.status(500).json({ error: 'Error.' });
   }
 });
 
-// Obtener la información de contacto
+
+
+// Ruta para obtener información de contacto
 app.get('/contact-info', async (req, res) => {
-  try {
+  try
+  {
     const contactInfoRef = admin.database().ref('contactInfo');
     const snapshot = await contactInfoRef.once('value');
     const contactInfo = snapshot.val();
 
-    if (!contactInfo) {
-      return res.status(404).json({ error: 'Contact info not found' });
+    if (!contactInfo)
+    {
+      return res.status(404).json({ error: 'Información de contacto inexistente.' });
     }
 
     res.status(200).json(contactInfo);
-  } catch (error) {
+  }
+  catch (error)
+  {
     console.error('Error fetching contact info:', error);
-    res.status(500).json({ error: 'Error fetching contact info' });
+    res.status(500).json({ error: 'Error obteniendo información.' });
   }
 });
 
-// Actualizar la información de contacto
+
+
+// Ruta para actualizar información de contacto
 app.put('/contact-info', async (req, res) => {
-  try {
+  try
+  {
     const { phone, email, address } = req.body;
     
-    if (!phone || !email || !address) {
-      return res.status(400).json({ error: 'All fields are required' });
+    if (!phone || !email || !address)
+    {
+      return res.status(400).json({ error: 'Todos los campos son requeridos.' });
     }
 
     const contactInfoRef = admin.database().ref('contactInfo');
     await contactInfoRef.set({ phone, email, address });
 
-    res.status(200).json({ message: 'Contact info updated successfully' });
-  } catch (error) {
+    res.status(200).json({ message: 'Información de contacto actualizada correctamente.' });
+  }
+  catch (error)
+  {
     console.error('Error updating contact info:', error);
-    res.status(500).json({ error: 'Error updating contact info' });
+    res.status(500).json({ error: 'Error al actualizar información.' });
   }
 });
 
-// Manejar Login
+
+
+// Ruta para manejar inicio de sesión
 app.post('/login', async (req, res) => {
-  try {
+  try
+  {
     const { username, password } = req.body;
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
+    if (!username || !password)
+    {
+      return res.status(400).json({ error: 'Nombre y Contraseña son requeridos.' });
     }
 
     // Credenciales del usuario
     const storedUsername = 'Administrador';
     const storedPasswordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
 
-    if (username !== storedUsername) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (username !== storedUsername)
+    {
+      return res.status(401).json({ error: 'Credenciales de administrador incorrectas.' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, storedPasswordHash);
     
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    if (!isPasswordValid)
+    {
+      return res.status(401).json({ error: 'Credenciales de administrador incorrectas.' });
     }
 
     // Generar token
     const token = jwt.sign({ username }, process.env.SECRET_KEY, { expiresIn: '1h' });
 
-    res.status(200).json({ message: 'Login successful', token });
-  } catch (error) {
+    res.status(200).json({ message: 'Inicio de sesión exitoso.', token });
+  }
+  catch (error)
+  {
     console.error('Error during login:', error);
-    res.status(500).json({ error: 'Error during login' });
+    res.status(500).json({ error: 'Error al iniciar sesión.' });
   }
 });
 

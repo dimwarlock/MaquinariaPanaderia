@@ -10,7 +10,9 @@ import Productos from './Productos';
 import { Carousel, Modal, Button, Form, Dropdown } from 'react-bootstrap';
 import PrivateRoute from './PrivateRoute';
 
-function App() {
+function App() 
+{
+  // Constantes
   const [images, setImages] = useState([]);
   const [show, setShow] = useState(false);
   const [formData, setFormData] = useState({});
@@ -21,14 +23,18 @@ function App() {
 
   useEffect(() => {
     const fetchImages = async () => {
-      try {
+      try 
+      {
         const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/images');
-        if (!response.ok) {
+        if (!response.ok) 
+        {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
         setImages(data);
-      } catch (error) {
+      } 
+      catch (error) 
+      {
         console.error('Error fetching images:', error);
       }
     };
@@ -44,10 +50,10 @@ function App() {
   const handleClose = () => setShow(false);
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
+    try 
+    {
       const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/submit-presupuesto', {
         method: 'POST',
         headers: {
@@ -56,7 +62,8 @@ function App() {
         body: JSON.stringify(formData)
       });
 
-      if (!response.ok) {
+      if (!response.ok) 
+      {
         throw new Error('Network response was not ok');
       }
 
@@ -64,14 +71,18 @@ function App() {
       console.log('Success:', result);
 
       handleClose();
-    } catch (error) {
+    } 
+    catch (error) 
+    {
       console.error('Error submitting form:', error);
     }
   };
 
   const handleNavigateAndScroll = (path, ref) => {
     navigate(path);
-    if (ref.current) {
+    
+    if (ref.current) 
+    {
       setTimeout(() => ref.current.scrollIntoView({ behavior: 'smooth' }), 0);
     }
   };

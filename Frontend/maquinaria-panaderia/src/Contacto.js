@@ -9,14 +9,18 @@ function Contacto() {
   });
 
   const fetchContactInfo = async () => {
-    try {
+    try 
+    {
       const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/contact-info');
-      if (!response.ok) {
+      if (!response.ok)
+      {
         throw new Error('Network response was not ok');
       }
       const data = await response.json();
       setContactInfo(data);
-    } catch (error) {
+    }
+    catch (error)
+    {
       console.error('Error fetching contact info:', error);
     }
   };
