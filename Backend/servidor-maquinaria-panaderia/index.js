@@ -294,10 +294,10 @@ app.post('/submit-presupuesto', async (req, res) => {
       from: process.env.EMAIL_USER,
       to: 'screanvir@gmail.com',
       subject: 'Solicitud de Presupuesto',
-      text: `Detalles del presupuesto: ${presupuesto}\n` +
-            `Email: ${presupuesto_email}\n` +
+      text: `Email: ${presupuesto_email}\n` +
             `Número: ${presupuesto_numero}\n` +
-            `Nombre: ${presupuesto_nombre}`
+            `Nombre: ${presupuesto_nombre}\n\n` +
+            `Detalles del presupuesto: ${presupuesto}`
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
