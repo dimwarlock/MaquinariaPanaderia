@@ -8,7 +8,7 @@ function Productos() {
     const fetchImages = async () => {
       try
       {
-        const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/images');
+        const response = await fetch('https://maquinaria-panaderia.vercel.app/images');
         if (!response.ok)
         {
           throw new Error('Network response was not ok');

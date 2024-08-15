@@ -25,7 +25,7 @@ function App()
     const fetchImages = async () => {
       try 
       {
-        const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/images');
+        const response = await fetch('https://maquinaria-panaderia.vercel.app/images');
         if (!response.ok) 
         {
           throw new Error('Network response was not ok');
@@ -54,7 +54,7 @@ function App()
     e.preventDefault();
     try 
     {
-      const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/submit-presupuesto', {
+      const response = await fetch('https://maquinaria-panaderia.vercel.app/submit-presupuesto', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

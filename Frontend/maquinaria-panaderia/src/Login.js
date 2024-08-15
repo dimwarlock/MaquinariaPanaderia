@@ -19,7 +19,7 @@ function Login()
     e.preventDefault();
     try 
     {
-      const response = await fetch('https://maquinaria-panaderia-backend.vercel.app/login', {
+      const response = await fetch('https://maquinaria-panaderia.vercel.app/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
