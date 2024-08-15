@@ -10,7 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 const fs = require('fs');
 
-// Inicializa la app de Firebase
+// Inicializa Firebase
 function loadFirebaseConfig() {
   const templatePath = path.join(__dirname, 'ClavePrivada.json');
   let configContent = fs.readFileSync(templatePath, 'utf-8');
