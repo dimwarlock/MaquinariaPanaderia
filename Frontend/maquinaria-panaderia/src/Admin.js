@@ -380,7 +380,8 @@ function Admin() {
             <Form.Group controlId="formImageDescription" className="mt-3">
               <Form.Label>Descripción imagen</Form.Label>
               <Form.Control
-                type="text"
+                as="textarea"
+                rows={4}
                 name="imageDescription"
                 value={imageInfo.imageDescription}
                 onChange={handleImageInfoChange}
@@ -439,7 +440,8 @@ function Admin() {
             <Form.Group controlId="formUpdateImageDescription" className="mt-3">
               <Form.Label>Descripción imagen</Form.Label>
               <Form.Control
-                type="text"
+                as="textarea"
+                rows={4}
                 name="imageDescription"
                 value={imageInfo.imageDescription}
                 onChange={handleImageInfoChange}

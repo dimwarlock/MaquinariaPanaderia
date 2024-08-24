@@ -292,7 +292,7 @@ app.post('/submit-presupuesto', async (req, res) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: 'screanvir@gmail.com',
+      to: 'contacto.mariogaete@gmail.com',
       subject: 'Solicitud de Presupuesto',
       text: `Email: ${presupuesto_email}\n` +
             `Número: ${presupuesto_numero}\n` +

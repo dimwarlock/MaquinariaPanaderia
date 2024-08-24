@@ -111,7 +111,7 @@ function App()
                 </Dropdown>
               </div>
               <div className="col-auto">
-                <Link className="btn btn-outline-light" to="/login">Acceso Administrador</Link>
+                {/*<Link className="btn btn-outline-light" to="/login">Acceso Administrador</Link>*/}
               </div>
             </div>
           </div>
